@@ -1,12 +1,15 @@
 # ISAudioRecorder
 AVAudioRecord&amp;AVAudioPlayer Controller
 
-Thanks & Contribution:
+# Thanks & Dependencies:
 
-Thanks To stefanceriu for the SCSiriWaveformView 
-https://github.com/stefanceriu/SCSiriWaveformView
+Thanks To [Stefan Ceriu](https://github.com/stefanceriu) for:
 
-Thanks to Carlos Arantesfor Cricle Progress Controll View
-https://github.com/carantes/CircularProgressControl.git
+[SCSiriWaveformView](https://github.com/stefanceriu/SCSiriWaveformView)
+
+
+Thanks to [Carlos Eduardo Arantes Ferreira](https://github.com/carantes) for: 
+
+[Cricle Progress Controll View](https://github.com/carantes/CircularProgressControl)
 
 
