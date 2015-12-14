@@ -1,6 +1,8 @@
 # ISAudioRecorder
 AVAudioRecord&amp;AVAudioPlayer Controller
 
+![Screenshot0][img0] &nbsp;&nbsp; ![Screenshot1][img1] &nbsp;&nbsp; 
+
 ## Getting Started
 
 ####### Swift 
@@ -72,3 +74,7 @@ Thanks to [Carlos Eduardo Arantes Ferreira](https://github.com/carantes) for:
 >**Copyright &copy; 2015-present Igor Sokolovsky.**
 
 *Please provide attribution, it is greatly appreciated.*
+
+
+[img0]:https://raw.githubusercontent.com/MurLuck/ISAudioRecorder/ISAudioRecorder/IMG_0212.jpg
+[img1]:https://raw.githubusercontent.com/MurLuck/ISAudioRecorder/ISAudioRecorder/IMG_0215.jpg
