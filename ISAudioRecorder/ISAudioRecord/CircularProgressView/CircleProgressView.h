@@ -10,6 +10,8 @@
 
 @interface CircleProgressView : UIControl
 
+@property (strong, nonatomic) UILabel *progressLabel;
+
 @property (nonatomic) NSTimeInterval elapsedTime;
 
 @property (nonatomic) NSTimeInterval timeLimit;

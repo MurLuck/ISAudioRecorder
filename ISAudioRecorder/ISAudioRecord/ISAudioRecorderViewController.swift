@@ -20,6 +20,31 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     //----------------------------------------------------------     Class Variabls     ---------------------------------------------------------------//
     //-------------------------------------------------------------------------------------------------------------------------------------------------//
     
+    ///delegate that pass the data to parent controller
+    var recorderDelegate:ISAudioRecorderViewDelegate?
+    
+    ///blure effect style (ExtraLight,light,Dark) - default is Dark
+    var blurEffectType:UIBlurEffectStyle?
+    
+    ///left UIBarButtonItem Label - default is Cancel
+    var leftToolBarLabelText:String?
+    
+    ///right UIBarButtonItem Label - default is Send
+    var rightToolBarLabelText:String?
+    
+    ///recorder limit time - default is 30 secend (00:30)
+    var recorderLimitTime:Double?
+    
+    ///the tool bar color you desire - default is darkGrayColor
+    var toolBarTintColor:UIColor?
+    
+    ///the tool bar color you desire - default is whiteColor
+    var timeLimitLabelColor:UIColor?
+    
+//------------------------------------------------------------------------//
+//                              Private Vars                              //
+//------------------------------------------------------------------------//
+    
     //the toolBar that appears at the bottom
     private var toolBar:UIToolbar!
     
@@ -71,8 +96,11 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     //the send button in the toolBar that isnt clickAble until you record something
     private var rightToolBarItem:UIBarButtonItem!
     
-    //delegate that pass the data to parent controller
-    var recorderDelegate:ISAudioRecorderViewDelegate?
+    //the cancel button in the toolBar wich dismiss the recorderviewcontroller
+    private var leftToolBarItem:UIBarButtonItem!
+    
+    //the background blur
+    private var blurView: UIVisualEffectView!
     
 //-------------------------------------------------------------------------------------------------------------------------------------------------//
 //--------------------------------------------------------    Super Class Functions    ------------------------------------------------------------//
@@ -133,7 +161,7 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         self.view.backgroundColor = UIColor.clearColor()
         
         let blurEffect = UIBlurEffect(style: .Dark)
-        let blurView: UIVisualEffectView = UIVisualEffectView(effect: blurEffect)
+        blurView = UIVisualEffectView(effect: blurEffect)
         blurView.frame = self.view.bounds
         blurView.alpha = 1
         self.view.addSubview(blurView)
@@ -141,14 +169,14 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         toolBarSetUp()
         setUpProgressCicle()
         
-        let waveHeight = (self.view.frame.height - self.progerssCicle.frame.height - self.toolBar.frame.height) - 50
-        let ypos = self.progerssCicle.frame.maxY + 10
-        self.waveView = SCSiriWaveformView(frame: CGRectMake(0, ypos , self.view.frame.width, waveHeight))
-        self.waveView.backgroundColor = UIColor.clearColor()
-        self.waveView.primaryWaveLineWidth = 3.0
-        self.waveView.waveColor = UIColor(red: 42/255, green: 169/255, blue: 255/255, alpha: 1.0)
-        self.waveView.secondaryWaveLineWidth = 1.0
-        self.waveView.updateWithLevel(0.0)
+        let waveHeight = (self.view.frame.height - progerssCicle.frame.height - toolBar.frame.height) - 50
+        let ypos = progerssCicle.frame.maxY + 10
+        waveView = SCSiriWaveformView(frame: CGRectMake(0, ypos , self.view.frame.width, waveHeight))
+        waveView.backgroundColor = UIColor.clearColor()
+        waveView.primaryWaveLineWidth = 3.0
+        waveView.waveColor = UIColor(red: 42/255, green: 169/255, blue: 255/255, alpha: 1.0)
+        waveView.secondaryWaveLineWidth = 1.0
+        waveView.updateWithLevel(0.0)
         
         self.view.addSubview(progerssCicle)
         self.view.addSubview(waveView)
@@ -156,6 +184,7 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         displayLink = CADisplayLink(target: self, selector: "updateMeters")
         displayLink.addToRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
         
+        loadUserSettings()
         loadRecordView()
     }
     
@@ -172,7 +201,7 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         
         let flexibleBarButtonItem = UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil)
         
-        let leftToolBarItem = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "cancelBarButtonOnClick")
+        leftToolBarItem = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "cancelBarButtonOnClick")
         leftToolBarItem.tintColor = UIColor.whiteColor()
         
         let imgViewRecorder = UIImage(named: "audio_record.png")
@@ -187,7 +216,7 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         let midlleBarButtonItem = UIBarButtonItem()
         midlleBarButtonItem.customView = recorderImgBtn
         
-        let barItems = [leftToolBarItem,flexibleBarButtonItem,midlleBarButtonItem,flexibleBarButtonItem,rightToolBarItem!]
+        let barItems = [leftToolBarItem!,flexibleBarButtonItem,midlleBarButtonItem,flexibleBarButtonItem,rightToolBarItem!]
         
         toolBar.setItems(barItems, animated: false)
     }
@@ -197,42 +226,42 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
 //------------------------------------------------------------------------//
         let sHeight = UIScreen.mainScreen().bounds.size.height
         
-        self.playBtn = UIButton(type: UIButtonType.Custom)
-        self.stopBtn = UIButton(type: UIButtonType.Custom)
+        playBtn = UIButton(type: UIButtonType.Custom)
+        stopBtn = UIButton(type: UIButtonType.Custom)
         
         if sHeight <= 667{
-            self.progerssCicle = CircleProgressView(frame: CGRectMake(self.view.frame.width/2 - 58, 40, 120, 120))
+            progerssCicle = CircleProgressView(frame: CGRectMake(self.view.frame.width/2 - 58, 40, 120, 120))
             
             var xpos = progerssCicle.frame.maxX + (self.view.frame.width - progerssCicle.frame.maxX)/2 - 28
             let btnYpos = progerssCicle.frame.midY - 23
-            self.playBtn.frame = CGRectMake(xpos, btnYpos, 46, 46)
+            playBtn.frame = CGRectMake(xpos, btnYpos, 46, 46)
             
             xpos = (progerssCicle.frame.minX)/2 - 23
-            self.stopBtn.frame = CGRectMake(xpos, btnYpos, 46, 46)
+            stopBtn.frame = CGRectMake(xpos, btnYpos, 46, 46)
             
         }else if sHeight >= 736{
-            self.progerssCicle = CircleProgressView(frame: CGRectMake(self.view.frame.width/2 - 88, 40, 180, 180))
+            progerssCicle = CircleProgressView(frame: CGRectMake(self.view.frame.width/2 - 88, 40, 180, 180))
             
             var xpos = progerssCicle.frame.maxX + (self.view.frame.width - progerssCicle.frame.maxX)/2 - 28
             let btnYpos = progerssCicle.frame.midY - 28
-            self.playBtn.frame = CGRectMake(xpos, btnYpos, 56, 56)
+            playBtn.frame = CGRectMake(xpos, btnYpos, 56, 56)
             
             xpos = (progerssCicle.frame.minX)/2 - 28
-            self.stopBtn.frame = CGRectMake(xpos, btnYpos, 56, 56)
+            stopBtn.frame = CGRectMake(xpos, btnYpos, 56, 56)
         }
         
-        self.progerssCicle.status = "                       "
-        self.progerssCicle.timeLimit = 30
-        self.progerssCicle.elapsedTime = 0
+        progerssCicle.status = "                       "
+        progerssCicle.timeLimit = 30
+        progerssCicle.elapsedTime = 0
 
-        self.playBtn.setImage(UIImage(named: "play.png"), forState: .Normal)
-        self.playBtn.enabled = false
-        self.playBtn.addTarget(self, action: "playRecord", forControlEvents: UIControlEvents.TouchUpInside)
+        playBtn.setImage(UIImage(named: "play.png"), forState: .Normal)
+        playBtn.enabled = false
+        playBtn.addTarget(self, action: "playRecord", forControlEvents: UIControlEvents.TouchUpInside)
         self.view.addSubview(playBtn)
 
-        self.stopBtn.setImage(UIImage(named: "stop.png"), forState: .Normal)
-        self.stopBtn.enabled = false
-        self.stopBtn.addTarget(self, action: "stopRecord", forControlEvents: UIControlEvents.TouchUpInside)
+        stopBtn.setImage(UIImage(named: "stop.png"), forState: .Normal)
+        stopBtn.enabled = false
+        stopBtn.addTarget(self, action: "stopRecord", forControlEvents: UIControlEvents.TouchUpInside)
         self.view.addSubview(stopBtn)
 
     }
@@ -245,25 +274,74 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
             self.view.alpha = 1
         })
     }
+   
+//------------------------------------------------------------------------//
+    private func loadUserSettings(){
+//------------------------------------------------------------------------//
+
+      
+        if let blur = blurEffectType{
+            
+            blurView.effect = UIBlurEffect(style: blur)
+        
+            switch blur{
+            case UIBlurEffectStyle.Dark:
+                break
+            case UIBlurEffectStyle.Light:
+                toolBar.barTintColor = UIColor.whiteColor()
+                progerssCicle.progressLabel.textColor = UIColor.grayColor()
+                leftToolBarItem.tintColor = UIColor.grayColor()
+                rightToolBarItem.tintColor = UIColor.grayColor()
+                break
+            case UIBlurEffectStyle.ExtraLight:
+                toolBar.barTintColor = UIColor.whiteColor()
+                progerssCicle.progressLabel.textColor = UIColor.grayColor()
+                leftToolBarItem.tintColor = UIColor.grayColor()
+                rightToolBarItem.tintColor = UIColor.grayColor()
+                break
+            }
+        }
+        
+        if let leftbarButtonTitle = leftToolBarLabelText{
+            leftToolBarItem.title = leftbarButtonTitle
+        }
+        
+        if let rightbarButtonTitle = rightToolBarLabelText{
+            rightToolBarItem.title = rightbarButtonTitle
+        }
+        
+        if let recorderTimelimit = recorderLimitTime{
+            progerssCicle.timeLimit = recorderTimelimit
+            progerssCicle.elapsedTime = 0
+        }
+        
+        if let tintColor = toolBarTintColor {
+            toolBar.barTintColor = tintColor
+        }
+        
+        if let ciclelabelColor = timeLimitLabelColor {
+            progerssCicle.progressLabel.textColor = ciclelabelColor
+        }
+    }
     
 //------------------------------------------------------------------------//
     func updateMeters(){
 //------------------------------------------------------------------------//
         var normalizedValue:Float = 0.0
-        switch self.waveViewInputType{
+        switch waveViewInputType{
         case SCSiriWaveformViewInputType.Recorder?:
-            self.recorder.updateMeters()
-            normalizedValue = self.normalizedPowerLevelFromDecibels(self.recorder.averagePowerForChannel(0))
+            recorder.updateMeters()
+            normalizedValue = normalizedPowerLevelFromDecibels(recorder.averagePowerForChannel(0))
             break
         case SCSiriWaveformViewInputType.Player?:
-            self.player.updateMeters()
-            normalizedValue = self.normalizedPowerLevelFromDecibels(self.player.averagePowerForChannel(0))
+            player.updateMeters()
+            normalizedValue = normalizedPowerLevelFromDecibels(player.averagePowerForChannel(0))
             break
         default:
             break
         }
         
-        self.waveView.updateWithLevel(CGFloat(normalizedValue))
+        waveView.updateWithLevel(CGFloat(normalizedValue))
     }
     
 //------------------------------------------------------------------------//
@@ -278,10 +356,10 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
 //------------------------------------------------------------------------//
     func updateProgress(){
 //------------------------------------------------------------------------//
-        if self.isRecording{
-            self.progerssCicle.elapsedTime = self.recorder.currentTime
-        }else if self.isPlaying{
-            self.progerssCicle.elapsedTime = self.player.currentTime
+        if isRecording{
+            progerssCicle.elapsedTime = recorder.currentTime
+        }else if isPlaying{
+            progerssCicle.elapsedTime = player.currentTime
         }
     }
     
@@ -310,11 +388,11 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
                 }
             }
             
-            self.progerssCicle.status = "Recording"
-            self.progerssCicle.timeLimit = 30
-            self.progerssCicle.elapsedTime = 0
+            progerssCicle.status = "Recording"
+            recorderLimitTime != nil ? (progerssCicle.timeLimit = recorderLimitTime!) : (progerssCicle.timeLimit = 30)
+            progerssCicle.elapsedTime = 0
             
-            self.waveViewInputType = SCSiriWaveformViewInputType.Recorder
+            waveViewInputType = SCSiriWaveformViewInputType.Recorder
             setUpRecorder()
             
             do{
@@ -332,14 +410,14 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
 //------------------------------------------------------------------------//
         if isRecording{
             isRecording = false
-            self.rightToolBarItem.enabled = true
-            self.progerssCicle.status = "Finished"
-            self.progerssCicle.elapsedTime = recorder.currentTime
+            rightToolBarItem.enabled = true
+            progerssCicle.status = "Finished"
+            progerssCicle.elapsedTime = recorder.currentTime
             recorder.stop()
             meterTimer.invalidate()
 
             playBtn.enabled = true
-            self.waveViewInputType = nil
+            waveViewInputType = nil
             setUpPlayer()
         }
     }
@@ -348,27 +426,27 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     func cancelBarButtonOnClick(){
 //------------------------------------------------------------------------//
         
-        self.progerssCicle.removeFromSuperview()
-        self.toolBar.removeFromSuperview()
-        self.waveView.removeFromSuperview()
-        self.stopBtn.removeFromSuperview()
-        self.playBtn.removeFromSuperview()
+        progerssCicle.removeFromSuperview()
+        toolBar.removeFromSuperview()
+        waveView.removeFromSuperview()
+        stopBtn.removeFromSuperview()
+        playBtn.removeFromSuperview()
         
         if displayLink != nil{
-            self.displayLink.invalidate()
+            displayLink.invalidate()
         }
         
         if meterTimer != nil{
             meterTimer.invalidate()
         }
         
-        self.waveView = nil
-        self.toolBar = nil
-        self.progerssCicle = nil
-        self.recorder = nil
-        self.playBtn = nil
-        self.stopBtn = nil
-        self.player = nil
+        waveView = nil
+        toolBar = nil
+        progerssCicle = nil
+        recorder = nil
+        playBtn = nil
+        stopBtn = nil
+        player = nil
         
         UIView.animateWithDuration(0.3, animations: { () -> Void in
             self.view.alpha = 0
@@ -397,14 +475,14 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         if !isPlaying && player != nil{
             isPlaying = true
             
-            self.progerssCicle.timeLimit = player.duration
-            self.progerssCicle.elapsedTime = 0
-            self.progerssCicle.status = "Playing"
+            progerssCicle.timeLimit = player.duration
+            progerssCicle.elapsedTime = 0
+            progerssCicle.status = "Playing"
             
-            self.stopBtn.enabled = true
-            self.playBtn.enabled = false
-            self.recorderImgBtn.enabled = false
-            self.waveViewInputType = SCSiriWaveformViewInputType.Player
+            stopBtn.enabled = true
+            playBtn.enabled = false
+            recorderImgBtn.enabled = false
+            waveViewInputType = SCSiriWaveformViewInputType.Player
 
             player.play()
             runMeterTimer()
@@ -418,18 +496,18 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
             isPlaying = false
             player.stop()
             
-            self.progerssCicle.status = "Stoped"
-            self.progerssCicle.timeLimit = player.duration
-            self.progerssCicle.elapsedTime = player.duration
+            progerssCicle.status = "Stoped"
+            progerssCicle.timeLimit = player.duration
+            progerssCicle.elapsedTime = player.duration
 
             player.currentTime = 0
             
-            self.playBtn.enabled = true
-            self.stopBtn.enabled = false
-            self.recorderImgBtn.enabled = true
+            playBtn.enabled = true
+            stopBtn.enabled = false
+            recorderImgBtn.enabled = true
             
-            self.waveViewInputType = nil
-            self.meterTimer.invalidate()
+            waveViewInputType = nil
+            meterTimer.invalidate()
         }
     }
     
@@ -448,7 +526,7 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         
         do {
             recorder = try AVAudioRecorder(URL: soundFileURL, settings: recorderSettings)
-            recorder.recordForDuration(30.0)
+            recorderLimitTime != nil ? recorder.recordForDuration(recorderLimitTime!) : recorder.recordForDuration(30.0)
             recorder.delegate = self
             recorder.meteringEnabled = true
             recorder.prepareToRecord()
@@ -478,7 +556,7 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         
         let currentFileName = "record_\(format.stringFromDate(NSDate())).m4a"
         let documentDirectory = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)[0]
-        self.soundFileURL = documentDirectory.URLByAppendingPathComponent(currentFileName)
+        soundFileURL = documentDirectory.URLByAppendingPathComponent(currentFileName)
         fileName = currentFileName
 
 //        }

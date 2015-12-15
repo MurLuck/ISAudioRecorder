@@ -25,6 +25,8 @@ class ISAudioRecorderDemo: UIViewController,ISAudioRecorderViewDelegate {
     
     @IBAction func openRecordController(sender: UIButton) {
         let rvc = ISAudioRecorderViewController()
+        rvc.blurEffectType = UIBlurEffectStyle.Light
+       // rvc.recorderLimitTime = 40
         rvc.prepareViewForLoading(self)
         rvc.recorderDelegate = self
     }

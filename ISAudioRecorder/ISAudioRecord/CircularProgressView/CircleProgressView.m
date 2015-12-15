@@ -12,7 +12,7 @@
 @interface CircleProgressView()
 
 @property (nonatomic, strong) CircleShapeLayer *progressLayer;
-@property (strong, nonatomic) UILabel *progressLabel;
+
 
 @end
 
@@ -53,7 +53,7 @@
         _progressLabel.textAlignment = NSTextAlignmentCenter;
         _progressLabel.backgroundColor = [UIColor clearColor];
         _progressLabel.textColor = [UIColor whiteColor];
-        
+      
         [self addSubview:_progressLabel];
     }
     
