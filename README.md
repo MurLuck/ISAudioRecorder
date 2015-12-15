@@ -1,7 +1,7 @@
 # ISAudioRecorder
 AVAudioRecord&amp;AVAudioPlayer Controller
 
-### Any issues and bug report are highly appreciated
+### Any issues, bugs and improvments reported are highly appreciated
 
 ![Screenshot0][img0] &nbsp;&nbsp; ![Screenshot1][img1] &nbsp;&nbsp; 
 
