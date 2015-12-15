@@ -11,9 +11,6 @@
 
 @interface CircleProgressView()
 
-@property (nonatomic, strong) CircleShapeLayer *progressLayer;
-
-
 @end
 
 @implementation CircleProgressView

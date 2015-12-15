@@ -7,8 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "CircleShapeLayer.h"
 
 @interface CircleProgressView : UIControl
+
+@property (nonatomic, strong) CircleShapeLayer *progressLayer;
 
 @property (strong, nonatomic) UILabel *progressLabel;
 

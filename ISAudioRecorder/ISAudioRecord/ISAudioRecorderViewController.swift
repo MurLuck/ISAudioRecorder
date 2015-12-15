@@ -20,26 +20,32 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     //----------------------------------------------------------     Class Variabls     ---------------------------------------------------------------//
     //-------------------------------------------------------------------------------------------------------------------------------------------------//
     
-    ///delegate that pass the data to parent controller
+    ///delegate that pass the data to parent controller.
     var recorderDelegate:ISAudioRecorderViewDelegate?
     
-    ///blure effect style (ExtraLight,light,Dark) - default is Dark
+    ///blure effect style (ExtraLight,light,Dark) - default is Dark.
     var blurEffectType:UIBlurEffectStyle?
     
-    ///left UIBarButtonItem Label - default is Cancel
+    ///left UIBarButtonItem Label title - default is Cancel.
     var leftToolBarLabelText:String?
     
-    ///right UIBarButtonItem Label - default is Send
+    ///right UIBarButtonItem Label title - default is Send.
     var rightToolBarLabelText:String?
     
-    ///recorder limit time - default is 30 secend (00:30)
+    ///title for recorded file that adds this title to the name of the file, (record_title_NSDate().m4a) - default is (record_NSDate().m4a)
+    var soundFileTitle:String?
+    
+    ///recorder limit time - default is 30 secend (00:30).
     var recorderLimitTime:Double?
     
-    ///the tool bar color you desire - default is darkGrayColor
+    ///the tool bar color you desire - default is darkGrayColor.
     var toolBarTintColor:UIColor?
     
-    ///the tool bar color you desire - default is whiteColor
+    ///the tool bar color you desire - default is whiteColor.
     var timeLimitLabelColor:UIColor?
+    
+    //the inner line color of the circle line
+    var innerCircleColor:UIColor?
     
 //------------------------------------------------------------------------//
 //                              Private Vars                              //
@@ -135,6 +141,12 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
 //-------------------------------------------------------------------------------------------------------------------------------------------------//
     
 //------------------------------------------------------------------------//
+    /**
+    prepares the view to be loaded , calls prepareRecorderView() after 
+    setting up the frame and adds the view to parent view
+    
+    - parameter parentViewController:the view controller that calls this view
+    */
     func prepareViewForLoading(parentViewController:UIViewController){
 //------------------------------------------------------------------------//
         self.testParentViewController = parentViewController
@@ -156,8 +168,15 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
-    private func prepareRecorderView(){
+    
+    //sets up blur background
+    //sets the SCsiriWaveView
+    //sets displayLink (loop) for updating the wave
+    //calls to toolBarSetUp(), setUpProgressCicle(), loadUserSettings(), loadRecordView()
+    
 //------------------------------------------------------------------------//
+    private func prepareRecorderView(){
+        
         self.view.backgroundColor = UIColor.clearColor()
         
         let blurEffect = UIBlurEffect(style: .Dark)
@@ -189,8 +208,13 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
-    private func toolBarSetUp(){
+    
+    //sets up the toolBar at the Bottom
+    //and sets the 3 Buttons in the toolBar
+
 //------------------------------------------------------------------------//
+    private func toolBarSetUp(){
+
         toolBar = UIToolbar(frame: CGRectMake(0, self.view.frame.height - 48, self.view.frame.width, 48))
         toolBar.barTintColor = UIColor.darkGrayColor()
         self.view.addSubview(toolBar)
@@ -222,8 +246,13 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
-    private func setUpProgressCicle(){
+    
+    //sets up the progressCircle 
+    //sets the play and stop buttons
+
 //------------------------------------------------------------------------//
+    private func setUpProgressCicle(){
+
         let sHeight = UIScreen.mainScreen().bounds.size.height
         
         playBtn = UIButton(type: UIButtonType.Custom)
@@ -266,19 +295,29 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
 
     }
     
+//------------------------------------------------------------------------//
+
+    //animate the view to appeare from invisible to visible
     
 //------------------------------------------------------------------------//
     private func loadRecordView(){
-//------------------------------------------------------------------------//
+
         UIView.animateWithDuration(0.3, animations: { () -> Void in
             self.view.alpha = 1
         })
     }
    
 //------------------------------------------------------------------------//
-    private func loadUserSettings(){
+    
+    //setts upp all the settings the caller setet
+    //if the variable is nil it won't set it up
+    
+    //also its sets up the tool bar color, toolbar buttons title collor
+    //and timer label based on the blur effect only if the user settings 
+    //are nil
+    
 //------------------------------------------------------------------------//
-
+    private func loadUserSettings(){
       
         if let blur = blurEffectType{
             
@@ -322,11 +361,20 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
         if let ciclelabelColor = timeLimitLabelColor {
             progerssCicle.progressLabel.textColor = ciclelabelColor
         }
+        
+        if let progressColor = innerCircleColor{
+            progerssCicle.progressLayer.progressColor = progressColor
+        }
     }
     
 //------------------------------------------------------------------------//
-    func updateMeters(){
+    
+    //function that allways work that are called by displayLink to cancel
+    //the loop call displayLink.invalidate()
+
 //------------------------------------------------------------------------//
+    func updateMeters(){
+
         var normalizedValue:Float = 0.0
         switch waveViewInputType{
         case SCSiriWaveformViewInputType.Recorder?:
@@ -345,8 +393,12 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
-    private func normalizedPowerLevelFromDecibels(decibels:Float) -> Float{
+    
+    //calculates the line wave based on the recorder/player channel power (decibels)
+    
 //------------------------------------------------------------------------//
+    private func normalizedPowerLevelFromDecibels(decibels:Float) -> Float{
+
         if (decibels < -60.0 || decibels == 0.0) {
             return 0.0
         }
@@ -354,8 +406,13 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
-    func updateProgress(){
+    
+    //updates the timer label backwards if you set to 40 sec and time
+    //elapsed is 10 sec it will show 30 secends left
+    
 //------------------------------------------------------------------------//
+    func updateProgress(){
+
         if isRecording{
             progerssCicle.elapsedTime = recorder.currentTime
         }else if isPlaying{
@@ -364,8 +421,13 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
-    private func runMeterTimer(){
+    
+    //calling this function to run the loop for updateProgress
+    //using NSTimer.scheduledTimerWithTimeInterval()
+    
 //------------------------------------------------------------------------//
+    private func runMeterTimer(){
+        
         meterTimer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "updateProgress", userInfo: nil, repeats: true)
     }
     
@@ -374,6 +436,13 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
 //-------------------------------------------------------------------------------------------------------------------------------------------------//
     
 //------------------------------------------------------------------------//
+    /**
+    Do Not Use this function directly
+    
+    handle onClick on the record button located in the toolBar
+    
+    sets up the recorder for record and starts the timer loop
+    */
     func recordAudioOnClick(){
 //------------------------------------------------------------------------//
         print("Pressed")
@@ -406,6 +475,14 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
+    /**
+    Do Not Use this function directly
+    
+    handle onClickRelease on the record button located in the toolBar
+    
+    saves the recorded audio and prepares the player to the audio file that 
+    was just now recorded
+    */
     func recordAudioOnClickRealease(){
 //------------------------------------------------------------------------//
         if isRecording{
@@ -423,6 +500,13 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
+    /**
+    Do Not Use this function directly
+    
+    handle cancel on the record button located in the toolBar left side
+    
+    removes all views nullifing them to cleane the memorry properly
+    */
     func cancelBarButtonOnClick(){
 //------------------------------------------------------------------------//
         
@@ -458,6 +542,15 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
+    /**
+    Do Not Use this function directly
+    
+    handle send button located in the toolBar right side
+    
+    dismisses the view and calls to recorderDelegate if exist 
+    passes the filename that located in app document directory
+    and its duration
+    */
     func sendBarButtonOnClick(){
 //------------------------------------------------------------------------//
         if player != nil{
@@ -470,6 +563,11 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
+    /**
+    Do Not Use this function directly
+    
+    plays the audio that was recorded , if audio not exist it wont be clickable
+    */
     func playRecord(){
 //------------------------------------------------------------------------//
         if !isPlaying && player != nil{
@@ -490,6 +588,11 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
+    /**
+    Do Not Use this function directly
+    
+    stops the audio that are now are played
+    */
     func stopRecord(){
 //------------------------------------------------------------------------//
         if isPlaying{
@@ -517,8 +620,12 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
 //-------------------------------------------------------------------------------------------------------------------------------------------------//
     
 //------------------------------------------------------------------------//
-    private func setUpRecorder(){
+    
+    //sets up the recorder after the midlle button in toolbar is clicked
+    
 //------------------------------------------------------------------------//
+    private func setUpRecorder(){
+
         getRecorderFileURLPath()
         
         print(soundFileURL)
@@ -539,32 +646,38 @@ class ISAudioRecorderViewController: UIViewController,AVAudioRecorderDelegate,AV
     }
     
 //------------------------------------------------------------------------//
-    private func getRecorderFileURLPath(){
+    
+    //generates the audio name and saves it to document directory and pass
+    //back to the recorder
+    
 //------------------------------------------------------------------------//
+    private func getRecorderFileURLPath(){
+
         let format = NSDateFormatter()
         format.dateFormat = "YYYY.MM.dd-hh.mm.ss"
         
-        //only if u have navigationController
-//        if let parentView = self.parentViewController?.childViewControllers[1]{
-//            if let title = parentView.title{
-//                let currentFileName = "record_\(title)_\(format.stringFromDate(NSDate())).m4a"
-//                fileName = currentFileName
-//                let documentDirectory = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)[0]
-//                self.soundFileURL = documentDirectory.URLByAppendingPathComponent(currentFileName)
-//            }
-//        }else{
-        
-        let currentFileName = "record_\(format.stringFromDate(NSDate())).m4a"
-        let documentDirectory = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)[0]
-        soundFileURL = documentDirectory.URLByAppendingPathComponent(currentFileName)
-        fileName = currentFileName
-
-//        }
+        if let fileTitle = soundFileTitle{
+            let currentFileName = "record_\(fileTitle)_\(format.stringFromDate(NSDate())).m4a"
+            fileName = currentFileName
+            let documentDirectory = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)[0]
+            soundFileURL = documentDirectory.URLByAppendingPathComponent(currentFileName)
+            
+        }else{
+            
+            let currentFileName = "record_\(format.stringFromDate(NSDate())).m4a"
+            let documentDirectory = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)[0]
+            soundFileURL = documentDirectory.URLByAppendingPathComponent(currentFileName)
+            fileName = currentFileName
+        }
     }
     
 //------------------------------------------------------------------------//
-    private func setUpPlayer(){
+    
+    //sets up the player after the recorder finished recording
+    
 //------------------------------------------------------------------------//
+    private func setUpPlayer(){
+
         do {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
             player = try AVAudioPlayer(contentsOfURL: recorder.url)
