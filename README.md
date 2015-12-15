@@ -58,6 +58,63 @@ let docDir = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory,
 let url = docDir.URLByAppendingPathComponent(fileName)
 ````
 
+#Update:
+
+###### added comments and new access controlls
+
+##### example at the end of this update 
+
+* *delegate that pass the data to parent controller.*
+````Swift
+var recorderDelegate:ISAudioRecorderViewDelegate?
+````
+
+* *blure effect style (ExtraLight,light,Dark) - default is Dark.*
+````Swift
+var blurEffectType:UIBlurEffectStyle?
+````
+    
+    
+* *left UIBarButtonItem Label title - default is Cancel.*
+````Swift
+var leftToolBarLabelText:String?
+````
+    
+* *right UIBarButtonItem Label title - default is Send.*
+````Swift
+var rightToolBarLabelText:String?
+````
+    
+* *title for recorded file that adds this title to the name of the file, (record_title_NSDate().m4a) - default is (record_NSDate().m4a)*
+````Swift
+var soundFileTitle:String?
+````
+
+* *recorder limit time - default is 30 secend (00:30).*
+````Swift
+var recorderLimitTime:Double?
+````
+
+* *the tool bar color you desire - default is darkGrayColor.*
+````Swift
+var toolBarTintColor:UIColor?
+````
+    
+* *the tool bar color you desire - default is whiteColor.*
+````Swift
+var timeLimitLabelColor:UIColor?
+````
+    
+* *the inner line color of the circle line*
+````Swift
+var innerCircleColor:UIColor?
+````
+
+###### Example:
+````Swift
+rvc.blurEffectType = UIBlurEffectStyle.Dark
+````
+
 # Thanks & Dependencies:
 
 Thanks To [Stefan Ceriu](https://github.com/stefanceriu) for:
